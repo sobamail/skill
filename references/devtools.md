@@ -8,7 +8,8 @@ its `/api/v2/object` traffic, and, when allowed, act on it. Together with
 
 ## First: the instance id
 
-Every script but `pages.mjs` takes the app's **instance id**: 26 base32hex digits, the
+Every script but `pages.mjs` takes the app's **instance id**: 26 base32hex digits (a
+system app's is longer: the App Store's `5K2OAGTONP2DNBDI133IMSSJ2OZ1` has 28), the
 last segment of the page's URL, `soba://app/<appid>/<account>/<instid>`. Learn it
 before anything else, from `pages.mjs`, which reads it out of each page's URL. Never go
 by a page's title: two accounts' windows of one app share it.

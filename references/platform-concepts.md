@@ -28,7 +28,8 @@ an ordinary email with a machine-readable attachment.
 `tutorial1.alice.user.app.example.com`. The id cannot change after publishing.
 
 **Instance.** An app must be instantiated to hold data. The instance id is a UUIDv4
-encoded as base32hex (26 chars) and names the folder where the instance's data lives
+encoded as base32hex (26 chars; a system app's is longer, 28 in the profiles seen) and
+names the folder where the instance's data lives
 (`apps/data/<first two chars>/<rest>/`). Each instance has an independent data store
 per replica. Modes: **developer** (a single local instance, no replication, a
 stale import pin is logged instead of thrown),

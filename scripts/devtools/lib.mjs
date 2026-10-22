@@ -49,12 +49,15 @@ async function get(port, path) {
 
 export const version = (port) => get(port, "/json/version");
 
-/** An app instance id: a uuid in base32hex, 26 digits. */
-export const INSTID = /^[0-9A-V]{26}$/i;
+/**
+ * An instance id: an app's is a uuid in base32hex, 26 digits; a system app's is longer
+ * and leaves base32hex (the App Store's 5K2OAGTONP2DNBDI133IMSSJ2OZ1, 28).
+ */
+export const INSTID = /^[0-9A-Z]{26,}$/i;
 
 /** What an app page's URL, soba://app/<appid>/<account>/<instid>[#…], names; else null. */
 export function app(url) {
-    const m = /^soba:\/\/app\/([^/]+)\/([^/]+)\/([0-9A-Va-v]{26})(?:[/?#]|$)/.exec(url);
+    const m = /^soba:\/\/app\/([^/]+)\/([^/]+)\/([0-9A-Za-z]{26,})(?:[/?#]|$)/.exec(url);
     return m && { appid: m[1], account: m[2], instid: m[3].toUpperCase() };
 }
 
@@ -74,7 +77,7 @@ export async function pages(port) {
  */
 export async function page(port, instid) {
     if (!INSTID.test(instid ?? "")) {
-        fail(`give the app's instance id (26 base32hex digits), not '${instid ?? ""}'; ` +
+        fail(`give the app's instance id (26 or more letters and digits), not '${instid ?? ""}'; ` +
             "pages.mjs lists the open ones");
     }
     const all = await pages(port);
