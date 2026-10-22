@@ -14,7 +14,7 @@ keeping its data in its own folder alongside the email archive), and blobs
 (immutable data up to 1 GB each).
 
 **Replica.** One copy of the mailbox per device, plus the one on the Sobamail
-servers. Identified by a UUIDv4 (`soba.app.mailboxUuid()`). Replicas converge by
+servers. Identified by a UUIDv4 (`soba.app.replicaUuid()`). Replicas converge by
 shipping mutations to each other; one that was offline catches up automatically in
 the background when it comes back. Within one mailbox an optimized real-time
 protocol is used, through the Sobamail cloud or peer-to-peer over the local network.

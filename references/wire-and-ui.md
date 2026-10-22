@@ -58,15 +58,19 @@ nothing was responded. Content is under key `3`.
 A page learns of its instance's mutations from a server-sent events stream and rereads
 what changed through its own requests. The published reference is amp-mgui
 `doc/pub/ref/app-events.md`; what follows was verified live on Sobamail 5.4.0.17052 with
-amp-cef `f494769` (2026-10-22). Runtimes without that commit announce no mutation of a
-JS app at all (`main-debug.log`: `Error 0x1005 deserializing mut=N` per mutation), and
-5.4.0.17049 crashed on a JS app's DeleteRow.
+amp-cef `f494769` (2026-10-22), the `replica` key on a later build of the same version.
+Runtimes without that commit announce no mutation of a JS app at all (`main-debug.log`:
+`Error 0x1005 deserializing mut=N` per mutation), and 5.4.0.17049 crashed on a JS app's
+DeleteRow.
 
 ```ts
 const events = new EventSource("/api/v2/event");
 events.addEventListener("{https://sobamail.com/module/forms/v1}SetProjectState", (ev) => {
-    // ev.lastEventId: the mutation id; ev.data: the db it went to ("main")
-    rereadProjects();
+    // ev.lastEventId: the mutation id
+    const {db, replica} = JSON.parse(ev.data);
+    if (replica !== ownReplica) { // soba.app.replicaUuid(), asked of the backend
+        rereadProjects();
+    }
 });
 ```
 
@@ -77,11 +81,21 @@ events.addEventListener("{https://sobamail.com/module/forms/v1}SetProjectState",
   ```
   event: {https://sobamail.com/module/forms/v1}AddSchemaNode
   id: 14
-  data: main
+  data: {"db":"main","replica":"{b55b95e9-08fc-4df5-95b6-6a1e6eda2bfa}"}
   ```
 
   `event` is the mutation's object key, `id` its mutation id (`<db>:<id>` for a db other
-  than `main`), `data` the db. No content, no table, no row: reread through your GetAll.
+  than `main`), `data` a one-line JSON object: `db`, the db it went to, and `replica`, the
+  braced uuid of the replica that wrote it. No content, no table, no row: reread through
+  your GetAll.
+- `replica` is what `soba.app.replicaUuid()` [NR] answers on the replica that wrote the
+  mutation, whichever of its pages made the request; a peer's mutation carries the peer's.
+  A page gets its own from a request of its backend (formbuilder: `UserInfoGet`'s
+  `replica`). Verified: two `NamespaceStatePut` from the page were announced under the
+  uuid `UserInfoGet` answered. A store with no replica uuid answers the nil uuid,
+  unbraced (`00000000-0000-0000-0000-000000000000`), which matches no event: production
+  assigns it in `ReplicatorStore::post_init_hook` (librepl), and a test setup must call
+  `ArskomStore::set_replica_uuid` before it instantiates any v8 job.
 - `EventSource` dispatches each event under its key, so a listener per key you follow;
   `onmessage` never fires. A batch (one request's mutations) comes as consecutive events
   in one chunk, delivered to the listeners in the same millisecond, a few ms after the
@@ -109,9 +123,17 @@ The pattern formbuilder uses (`ui/src/api/sync.ts`, `MutationFollower`):
 - Open the stream *before* the start-up reads and hold the rereads until they are done:
   a write that lands while they run is announced and reread after them. Close it in
   `onDestroy`. Mock mode (no runtime) opens none.
+- An event its own replica wrote rereads nothing when the page shows what its requests
+  wrote without a reread (formbuilder's Puts update the page in place, the schema tab
+  refetches after its save). Keys a mail handler writes too (formbuilder's
+  `AddFilledDocument`, `SetFormSend`) are reread whoever wrote them: the mail may be
+  processed on this replica. Until the page knows its replica, and for data naming none,
+  every event rereads; compare uuids unbraced and lowercase. The cost: a second page of
+  the instance on the same replica sees the first one's writes only at its next reread.
 - jsdom has no `EventSource`: tests stub one (`vi.stubGlobal("EventSource", ...)`,
   formbuilder's `ui/src/api/__mocks__/eventsource.ts`) and play the runtime with
-  `emit(objkey, mutid)`.
+  `emit(objkey, mutid, replica?, db?)`, another replica's by default, or `emitData` for
+  raw data.
 - To see the raw stream without writing anything, run in the page (devtools `eval.mjs`)
   `fetch("/api/v2/event", {headers: {"Last-Event-ID": "0"}, signal})` and read its body
   for a second or two, then abort: it replays the log.

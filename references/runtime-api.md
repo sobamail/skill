@@ -53,9 +53,9 @@ is what establishes the causal link.
 | `soba.app.account()` [NR] | `String` | this mailbox's email address |
 | `soba.app.instanceId()` | `String` | base32hex uuid of the instance |
 | `soba.app.isReplicated()` | `Boolean` | true while running a replicated object |
-| `soba.app.mailboxUuid()` [NR] | `String` | braced uuid of this replica |
 | `soba.app.objectKey()` | `String` | the key of the object being processed |
 | `soba.app.peers()` [NR] | `String[]` | addresses sharing this instance |
+| `soba.app.replicaUuid()` [NR] | `String` | braced uuid of this replica, as the event stream's `replica` names it; the nil uuid, unbraced, on a store without one (wire-and-ui.md) |
 
 ## soba.data
 
