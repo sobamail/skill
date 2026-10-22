@@ -79,7 +79,7 @@ Details and copyable shapes for each step: `references/app-anatomy.md`.
 An object is **replicated** when it is some table's `insertEvent` or it is `DeleteRow`.
 Its handler becomes a mutation that every replica replays, so it must be deterministic.
 While one runs, the runtime **throws** on anything non-deterministic:
-`soba.db.exec`, `soba.app.account`, `soba.app.peers`, `soba.type.uuid.v4`,
+`soba.db.exec`, `soba.app.account`, `soba.app.users`, `soba.type.uuid.v4`,
 `soba.mail.send`, `soba.data.findLast`, the clocks, `soba.platform.version`. Use only
 `soba.data.insert/find/delete/update`, the content you were given, and pure code.
 `soba.task.emit` and `soba.task.respond` are silently no-ops there.

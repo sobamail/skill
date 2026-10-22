@@ -82,5 +82,5 @@ and the **Certificate Manager** are ordinary Sobamail apps. Only their deploymen
 differs: one private instance per mailbox, not deletable.
 
 **Accounts and roles.** `soba.app.account()` is the mailbox address,
-`soba.app.peers()` the collaborators on a shared instance. Roles and permissions are
+`soba.app.users()` the collaborators on a shared instance. Roles and permissions are
 app-level logic, not a runtime feature.
