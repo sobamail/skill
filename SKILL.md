@@ -133,7 +133,7 @@ The UI never touches the database. It POSTs msgpack SMC `{namespace, name, conte
 to `/api/v2/object` and decodes the compact reply (integer keys: 0 namespace, 1 name,
 2 error, 3 content). To follow changes it holds `new EventSource("/api/v2/event")`, a
 server-sent stream naming each mutation of the instance by its object key, and rereads
-what changed; never poll (`references/wire-and-ui.md`, Following changes). `ui/src/lib/Response.ts` is shared between the reference apps
+what changed (`references/wire-and-ui.md`, Following changes). `ui/src/lib/Response.ts` is shared between the reference apps
 (the copies differ; see `references/wire-and-ui.md`). Svelte 5 runes, Vite, TypeScript, pnpm; the dev loop is `pnpm run dev-watch`
 building into `../assets`, then reload the app in Sobamail (there is no dev server).
 Chrome 117 compatibility is required (CEF). `references/wire-and-ui.md` has the key

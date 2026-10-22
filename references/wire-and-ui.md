@@ -55,8 +55,8 @@ nothing was responded. Content is under key `3`.
 
 ## Following changes: `GET /api/v2/event`
 
-Don't poll. A page learns of its instance's mutations from a server-sent events stream
-and rereads what changed through its own requests. The published reference is amp-mgui
+A page learns of its instance's mutations from a server-sent events stream and rereads
+what changed through its own requests. The published reference is amp-mgui
 `doc/pub/ref/app-events.md`; what follows was verified live on Sobamail 5.4.0.17052 with
 amp-cef `f494769` (2026-10-22). Runtimes without that commit announce no mutation of a
 JS app at all (`main-debug.log`: `Error 0x1005 deserializing mut=N` per mutation), and
