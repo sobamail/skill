@@ -53,6 +53,69 @@ Response: msgpack SMC in compact form, produced by whatever the backend passed t
 `soba.task.respond`. Check `response.ok`; an empty body (`byteLength == 0`) means
 nothing was responded. Content is under key `3`.
 
+## Following changes: `GET /api/v2/event`
+
+Don't poll. A page learns of its instance's mutations from a server-sent events stream
+and rereads what changed through its own requests. The published reference is amp-mgui
+`doc/pub/ref/app-events.md`; what follows was verified live on Sobamail 5.4.0.17052 with
+amp-cef `f494769` (2026-10-22). Runtimes without that commit announce no mutation of a
+JS app at all (`main-debug.log`: `Error 0x1005 deserializing mut=N` per mutation), and
+5.4.0.17049 crashed on a JS app's DeleteRow.
+
+```ts
+const events = new EventSource("/api/v2/event");
+events.addEventListener("{https://sobamail.com/module/forms/v1}SetProjectState", (ev) => {
+    // ev.lastEventId: the mutation id; ev.data: the db it went to ("main")
+    rereadProjects();
+});
+```
+
+- The response is `200`, `text/event-stream`, `Cache-Control: no-cache`, and never ends.
+  It opens with `: ok` and `retry: 2000`, then one event per mutation written to the
+  instance, whoever wrote it (this page, another page, replication), in id order:
+
+  ```
+  event: {https://sobamail.com/module/forms/v1}AddSchemaNode
+  id: 14
+  data: main
+  ```
+
+  `event` is the mutation's object key, `id` its mutation id (`<db>:<id>` for a db other
+  than `main`), `data` the db. No content, no table, no row: reread through your GetAll.
+- `EventSource` dispatches each event under its key, so a listener per key you follow;
+  `onmessage` never fires. A batch (one request's mutations) comes as consecutive events
+  in one chunk, delivered to the listeners in the same millisecond, a few ms after the
+  request's own response.
+- A deletion is announced as `{https://sobamail.com/module/base/v1}DeleteRow` whatever
+  table it left; the event does not say which. An lww replacement writes a DeleteRow and
+  then the new insert, whose key names the table; a DeleteRow that comes alone is a
+  `soba.data.delete()`. Map DeleteRow to what your backend deletes.
+- Only mutations ride it: a request that writes nothing leaves no event. An insert event
+  is announced under the namespace its class declares, which need not be the app's main
+  one (formbuilder's `form` table: `{https://sobamail.com/module/forms/fill/v1}AddForm`).
+- The browser reconnects by itself and sends `Last-Event-ID`; the stream then opens with
+  every applied mutation since that id, in order, before anything new.
+  `Last-Event-ID: 0` replays the whole log. A malformed id answers `400`, an id naming a
+  db the instance lacks opens an empty stream, `POST` answers `405`, and a page gets its
+  own instance's stream only (another instance's URL: `403`). Delivery is at least once:
+  an event means "reread", never count them.
+- `main-debug.log` logs each open as `Event stream open for <account>, N streams`.
+
+The pattern formbuilder uses (`ui/src/api/sync.ts`, `MutationFollower`):
+
+- A map from the keys the page follows to the list each one rereads; the events that
+  arrive together reread each list once (a `setTimeout(0)` after the first), and a list
+  is never reread twice at once, so an older answer cannot land after a newer one.
+- Open the stream *before* the start-up reads and hold the rereads until they are done:
+  a write that lands while they run is announced and reread after them. Close it in
+  `onDestroy`. Mock mode (no runtime) opens none.
+- jsdom has no `EventSource`: tests stub one (`vi.stubGlobal("EventSource", ...)`,
+  formbuilder's `ui/src/api/__mocks__/eventsource.ts`) and play the runtime with
+  `emit(objkey, mutid)`.
+- To see the raw stream without writing anything, run in the page (devtools `eval.mjs`)
+  `fetch("/api/v2/event", {headers: {"Last-Event-ID": "0"}, signal})` and read its body
+  for a second or two, then abort: it replays the log.
+
 ## ui/src/lib/Response.ts
 
 Shared between the published apps. It exports `KeyMsgpack` (the integer enum above),
