@@ -134,6 +134,11 @@ The pattern formbuilder uses (`ui/src/api/sync.ts`, `MutationFollower`):
   formbuilder's `ui/src/api/__mocks__/eventsource.ts`) and play the runtime with
   `emit(objkey, mutid, replica?, db?)`, another replica's by default, or `emitData` for
   raw data.
+- A smaller example is the Calendar app's `ui/src/lib/store.svelte.ts` (`listen()`,
+  `markStale()`): the event tables' keys reread the window, the calendar tables' the
+  calendars, DeleteRow and the stream's `open` both, one reread per burst on a 50ms
+  timer; its explicit reread after a save stays, since the save then opens the saved
+  event. Its `App.test.ts` "realtime updates" stubs `EventSource` as an `EventTarget`.
 - To see the raw stream without writing anything, run in the page (devtools `eval.mjs`)
   `fetch("/api/v2/event", {headers: {"Last-Event-ID": "0"}, signal})` and read its body
   for a second or two, then abort: it replays the log.
