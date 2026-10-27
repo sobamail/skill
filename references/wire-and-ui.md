@@ -112,7 +112,15 @@ events.addEventListener("{https://sobamail.com/module/forms/v1}SetProjectState",
   `Last-Event-ID: 0` replays the whole log. A malformed id answers `400`, an id naming a
   db the instance lacks opens an empty stream, `POST` answers `405`, and a page gets its
   own instance's stream only (another instance's URL: `403`). Delivery is at least once:
-  an event means "reread", never count them.
+  an event means "reread", never count them. A non-200 answer to a reconnect (the `400`)
+  makes the browser close the `EventSource` for good (`readyState` CLOSED, no
+  retry): reopen it yourself from `onerror` and reread once it's open, since a new
+  stream does not replay what was missed.
+- There is no v1 route and no query parameter. It's SSE because CEF can't serve
+  WebSockets on `soba:`. Implementation: amp-cef `cef/integration/AppEventStream.{h,cpp}`
+  and `AppResourceHandler.cpp` (`case 2:` of the version switch), with design notes in
+  amp-cef `zai/app-event-stream.md`. The counter tutorial (amp-mgui
+  `doc/pub/counter-tutorial.md`) has the minimal client.
 - `main-debug.log` logs each open as `Event stream open for <account>, N streams`.
 
 The pattern formbuilder uses (`ui/src/api/sync.ts`, `MutationFollower`):
@@ -139,6 +147,10 @@ The pattern formbuilder uses (`ui/src/api/sync.ts`, `MutationFollower`):
   calendars, DeleteRow and the stream's `open` both, one reread per burst on a 50ms
   timer; its explicit reread after a save stays, since the save then opens the saved
   event. Its `App.test.ts` "realtime updates" stubs `EventSource` as an `EventTarget`.
+- Contacts' `watch_people` (`ui/src/lib/model.ts`, tests in `ui/src/lib/watch.test.ts`)
+  follows every key its tables write, so any event rereads. It folds a burst on a 150 ms
+  timer, reopens a CLOSED stream, and rereads the loaded pages in one `GetPeople`
+  (limit = offset + pageSize), which keeps the scroll position.
 - To see the raw stream without writing anything, run in the page (devtools `eval.mjs`)
   `fetch("/api/v2/event", {headers: {"Last-Event-ID": "0"}, signal})` and read its body
   for a second or two, then abort: it replays the log.
