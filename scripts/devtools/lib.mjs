@@ -55,10 +55,13 @@ export const version = (port) => get(port, "/json/version");
  */
 export const INSTID = /^[0-9A-Z]{26,}$/i;
 
-/** What an app page's URL, soba://app/<appid>/<account>/<instid>[#…], names; else null. */
+/**
+ * What an app page's URL, soba://<instid>.inst.sobamail.com/<account>/[#…], names; else null.
+ * The host comes lower-cased, the instance id goes back to its own upper case.
+ */
 export function app(url) {
-    const m = /^soba:\/\/app\/([^/]+)\/([^/]+)\/([0-9A-Za-z]{26,})(?:[/?#]|$)/.exec(url);
-    return m && { appid: m[1], account: m[2], instid: m[3].toUpperCase() };
+    const m = /^soba:\/\/([0-9A-Za-z]{26,})\.inst\.sobamail\.com\/([^/?#]+)(?:[/?#]|$)/i.exec(url);
+    return m && { instid: m[1].toUpperCase(), account: decodeURIComponent(m[2]) };
 }
 
 /**

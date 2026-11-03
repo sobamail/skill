@@ -10,7 +10,8 @@ its `/api/v2/object` traffic, and, when allowed, act on it. Together with
 
 Every script but `pages.mjs` takes the app's **instance id**: 26 base32hex digits (a
 system app's is longer: the App Store's `5K2OAGTONP2DNBDI133IMSSJ2OZ1` has 28), the
-last segment of the page's URL, `soba://app/<appid>/<account>/<instid>`. Learn it
+first label of the page URL's host, `soba://<instid>.inst.sobamail.com/<account>/` (shown
+there in lower case; every script takes it in either case). Learn it
 before anything else, from `pages.mjs`, which reads it out of each page's URL. Never go
 by a page's title: two accounts' windows of one app share it.
 DevTools' own page and browser ids change whenever Sobamail restarts; the instance id

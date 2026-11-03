@@ -156,8 +156,8 @@ Sobamail Desktop serves Chromium's DevTools on `127.0.0.1:50134`. The scripts in
 `scripts/devtools/` read an app's page (screenshots, DOM rects and text, console,
 the object API's traffic decoded from msgpack) and, when the user allows it, act on
 it (`eval`, real mouse and keyboard `input`, `reload`). Learn the app's **instance id**
-first, from `pages.mjs`, which reads it out of the page URL
-(`soba://app/<appid>/<account>/<instid>`): every other script takes it, never a title.
+first, from `pages.mjs`, which reads it out of the page URL's host
+(`soba://<instid>.inst.sobamail.com/<account>/`): every other script takes it, never a title.
 Grant the read-only scripts in the project's settings and have the acting ones ask
 each time. `references/devtools.md` has the scripts, the grants, and recipes such as
 watching what a click sends or testing a drag.
