@@ -57,11 +57,17 @@ export const INSTID = /^[0-9A-Z]{26,}$/i;
 
 /**
  * What an app page's URL, soba://<instid>.inst.sobamail.com/<account>/[#…], names; else null.
- * The host comes lower-cased, the instance id goes back to its own upper case.
+ * The host comes lower-cased, the instance id goes back to its own upper case. An app run
+ * inline in a message is soba://message/<mfid>/…?appid=…&instid=<instid>&user=<account>.
  */
 export function app(url) {
     const m = /^soba:\/\/([0-9A-Za-z]{26,})\.inst\.sobamail\.com\/([^/?#]+)(?:[/?#]|$)/i.exec(url);
-    return m && { instid: m[1].toUpperCase(), account: decodeURIComponent(m[2]) };
+    if (m) return { instid: m[1].toUpperCase(), account: decodeURIComponent(m[2]) };
+    const inline = /^soba:\/\/message\/\d+\/[^?#]*\?([^#]*)/.exec(url);
+    if (! inline) return null;
+    const q = new URLSearchParams(inline[1]);
+    const instid = q.get("instid");
+    return instid && INSTID.test(instid) ? { instid: instid.toUpperCase(), account: q.get("user") } : null;
 }
 
 /**
