@@ -56,18 +56,20 @@ export const version = (port) => get(port, "/json/version");
 export const INSTID = /^[0-9A-Z]{26,}$/i;
 
 /**
- * What an app page's URL, soba://<instid>.inst.sobamail.com/<account>/[#…], names; else null.
- * The host comes lower-cased, the instance id goes back to its own upper case. An app run
- * inline in a message is soba://message/<mfid>/…?appid=…&instid=<instid>&user=<account>.
+ * What an app page's URL, soba://<instid>.<replica>.instance/[…], names; else null. The
+ * replica is the mailbox's, 26 base32hex digits. The host comes lower-cased, the instance id
+ * and the replica go back to their own upper case. An app run inline in a message is
+ * soba://<mfid>.<replica>.message/…?appid=…&instid=<instid>, its mailbox the message's.
  */
 export function app(url) {
-    const m = /^soba:\/\/([0-9A-Za-z]{26,})\.inst\.sobamail\.com\/([^/?#]+)(?:[/?#]|$)/i.exec(url);
-    if (m) return { instid: m[1].toUpperCase(), account: decodeURIComponent(m[2]) };
-    const inline = /^soba:\/\/message\/\d+\/[^?#]*\?([^#]*)/.exec(url);
+    const m = /^soba:\/\/([0-9A-Za-z]{26,})\.([0-9A-Va-v]{26})\.instance(?:[/?#:]|$)/i.exec(url);
+    if (m) return { instid: m[1].toUpperCase(), replica: m[2].toUpperCase() };
+    const inline = /^soba:\/\/\d+\.([0-9A-Va-v]{26})\.message\/[^?#]*\?([^#]*)/i.exec(url);
     if (! inline) return null;
-    const q = new URLSearchParams(inline[1]);
-    const instid = q.get("instid");
-    return instid && INSTID.test(instid) ? { instid: instid.toUpperCase(), account: q.get("user") } : null;
+    const instid = new URLSearchParams(inline[2]).get("instid");
+    return instid && INSTID.test(instid)
+        ? { instid: instid.toUpperCase(), replica: inline[1].toUpperCase() }
+        : null;
 }
 
 /**

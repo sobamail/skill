@@ -10,8 +10,8 @@ its `/api/v2/object` traffic, and, when allowed, act on it. Together with
 
 Every script but `pages.mjs` takes the app's **instance id**: 26 base32hex digits (a
 system app's is longer: the App Store's `5K2OAGTONP2DNBDI133IMSSJ2OZ1` has 28), the
-first label of the page URL's host, `soba://<instid>.inst.sobamail.com/<account>/` (shown
-there in lower case; every script takes it in either case). Learn it
+first label of the page URL's host, `soba://<instid>.<replica>.instance/` (shown there in
+lower case; every script takes it in either case; `<replica>` names the mailbox). Learn it
 before anything else, from `pages.mjs`, which reads it out of each page's URL. Never go
 by a page's title: two accounts' windows of one app share it.
 DevTools' own page and browser ids change whenever Sobamail restarts; the instance id
@@ -28,7 +28,7 @@ Run them from the project root, exactly as `node
 
 | script | does | tier |
 |---|---|---|
-| `pages.mjs` | the Sobamail version, and the open pages by instance id, app id and account | read |
+| `pages.mjs` | the Sobamail version, and the open pages by instance id and mailbox replica | read |
 | `shot.mjs <instid> [out.png] [--selector css] [--scale 1-4]` | a PNG of the page or of one element, zoomed; read it back to look | read |
 | `query.mjs <instid> <css> [--limit N]` | per element: tag, text, rect `[x, y, w, h]`, class, role, aria-label, disabled, cursor | read |
 | `console.mjs <instid> [--seconds N]` | console messages, uncaught exceptions, browser log entries (failed loads, fonts, CSP) | read |
