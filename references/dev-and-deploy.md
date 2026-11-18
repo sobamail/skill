@@ -87,13 +87,25 @@ live instance (the owner's procedure, 2026-11-18):
    app id) and commit it. soba-chat's bumps, commit message `verbump`, raise the third
    and the fourth number together: `1.4.2.7` -> `1.4.3.8` -> `1.4.4.9`.
 2. In `ui/`, `pnpm run build`: the release bundle into `assets/`.
-3. Application Manager, **Instances**: select the app's instance, **Deploy**.
-4. Application Manager, **Packages**: select the deployed package, **Publish**, choose
-   **Appstore**. The package then reads **queued for publication**; anything else means
-   the publish did not go through.
+3. Application Manager, **Instances**: select the app's instance, **Deploy**. Success
+   is the toast `App Deployment OK! id=<package id>`.
+4. Application Manager, **Packages**: select the new package (the id from step 3, the
+   new version), **Publish**, then the **App Store** button that appears beside it.
+   Success is the toast `<Name> <version> was queued for publication`; anything else
+   means the publish did not go through.
 
-Steps 3 and 4 are clicks in the desktop client: an agent without desktop control hands
-them to the owner after doing steps 1 and 2.
+Steps 3 and 4 can be driven over DevTools (`references/devtools.md`): the Application
+Manager is the page `pages.mjs` lists as "App Store", instance id
+`5K2OAGTONP2DNBDI133IMSSJ2OZ1`; its UI is soba-appstore (`Instances.svelte`,
+`Packages.svelte`). Before Deploy, check that the instance's devel root
+(`<profile>/apps/devel/<app id>`, shown under its row) resolves to the checkout just
+built. Then, with `input.mjs` (each step a JSON array, e.g. `'[{"click":[x,y]},
+{"wait":3000},{"shot":"out.png"}]'`): click the left nav's Instances, scroll
+(`wheel`) to the app's row, click its radio, scroll back up, click Deploy, read the toast
+off a `shot`; then Packages, the package's radio, Publish, App Store, a `wait` of a few
+seconds, a `shot`. `query.mjs <instid> 'button'` and `'input[type=radio]'` give the
+rects to click; the rows scroll, so query again after a wheel. Done so on 2026-11-18 for
+Chat 1.4.4.9 (package 64).
 
 ## Instance data on disk
 
