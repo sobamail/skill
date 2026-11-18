@@ -168,6 +168,8 @@ A new app starts in the Application Manager: "Instantiate In Dev Mode" writes th
 skeleton `Mutator.mjs` into the develroot. Edit that file, never create a skeleton
 yourself; rebuild the UI into `assets/`, reload. Changing `objects` needs "Reload Objects".
 Deploy freezes the app into an `AppInfo` object; it fails on a stale import pin, a
-version not greater than every deployed one, or an `id` mismatch. `references/dev-and-deploy.md` has the checklist and the
+version not greater than every deployed one, or an `id` mismatch. A release to the app
+store is version bump, build, Deploy, then Packages, Publish, Appstore, which leaves the
+package "queued for publication". `references/dev-and-deploy.md` has the checklists and the
 tutorial sequence; `references/platform-concepts.md` has the vocabulary (mailbox,
 replica, instance, mode, mutation graph, system apps).

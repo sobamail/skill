@@ -78,6 +78,23 @@ the runtime never rewrites an import.
 Deploy fails when: an import pin is stale (see Hashes), the `version` is not greater than every deployed version of the app id, or the
 Mutator `id` differs from the id on the Instances screen.
 
+## Releasing to the app store
+
+A release is a deploy followed by a publish, done in the Application Manager of the
+live instance (the owner's procedure, 2026-11-18):
+
+1. Bump `static version` in `Mutator.mjs` (it must exceed every deployed version of the
+   app id) and commit it. soba-chat's bumps, commit message `verbump`, raise the third
+   and the fourth number together: `1.4.2.7` -> `1.4.3.8` -> `1.4.4.9`.
+2. In `ui/`, `pnpm run build`: the release bundle into `assets/`.
+3. Application Manager, **Instances**: select the app's instance, **Deploy**.
+4. Application Manager, **Packages**: select the deployed package, **Publish**, choose
+   **Appstore**. The package then reads **queued for publication**; anything else means
+   the publish did not go through.
+
+Steps 3 and 4 are clicks in the desktop client: an agent without desktop control hands
+them to the owner after doing steps 1 and 2.
+
 ## Instance data on disk
 
 ```
