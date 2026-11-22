@@ -1,6 +1,6 @@
 # Observing and driving a running app over DevTools
 
-Sobamail Desktop (5.x, Chromium 117 through CEF) serves Chromium's DevTools on
+Sobamail Desktop (5.x, Chromium 158 through CEF) serves Chromium's DevTools on
 `127.0.0.1:50134`. `scripts/devtools/` holds small Node scripts (Node >= 22: `fetch` and
 `WebSocket` are built in; no packages) that read an app's page, watch its console and
 its `/api/v2/object` traffic, and, when allowed, act on it. Together with
