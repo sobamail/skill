@@ -27,7 +27,7 @@ Base module exports (`https://sobamail.com/module/base/v1`), from Base.mjs:
 |---|---|
 | `DeleteRow` | KEY only; the mandatory `deleteEvent`; well-known object 1 |
 | `UpdateRow` | `{column, op, value}`; well-known object 2 |
-| `Message` | email object. `static extractObject(message, meta)` returns the SMC object `{namespace, name, content}` or null (limbo, unstructured, malformed). Instances: `uuid`, `headers` (array of `[name, value]`), `from`/`to`/`cc`/`bcc` (arrays of `EmailAddress`), `sender`, `subject`, `messageId`, `dateMsec`, `bodyText`, `bodyHtml`, `bodyObject`, `attachments`, plus `hasHeader`, `getHeader*`/`setHeader*`/`addHeader*` families, `addTo/addCc/addBcc`, `genUuid()`, `validate()` |
+| `Message` | email object. `static extractObject(message, meta)` returns the SMC object `{namespace, name, content}` or null (limbo, unstructured, malformed). Instances: `uuid`, `headers` (array of `[name, value]`), `from`/`to`/`cc`/`bcc` (arrays of `EmailAddress`), `sender`, `subject`, `messageId`, `dateMsec`, `bodyText`, `bodyHtml`, `bodyObject`, `attachments`, plus `hasHeader`, `getHeader*`/`setHeader*`/`addHeader*` families, `addTo/addCc/addBcc`, `genUuid()`, `genMessageId()` (sets `Message-Id` from `soba.type.messageId.gen()` and the From domain; set `from` first), `validate()` |
 | `EmailAddress` | `{name, address}` |
 | `MessageBodyText`, `MessageBodyHtml`, `MessageBodyData` | body parts; string content is UTF-8 encoded for you |
 | `MessageAttachment` | `{name, type, blobs, contentId}`; the bytes go in `blobs`, and a string is NOT encoded for you (see soba.mail) |
@@ -142,6 +142,15 @@ message.attachments = [ new MessageAttachment({
 soba.mail.send(message);
 ```
 
+`soba.mail.sign(message: Message)` [NR] returns the signed `Message` (the object inside
+a `{base/v1}Envelope`); it throws when the account can't sign. Send what it returns.
+The signed message gets a new Message-ID, which replaces any the message had, and the
+mail goes out with it: read `signed.messageId` (in the header's angle brackets) to
+name the mail, never one set before signing. The signature covers the structured
+object, not the readable bodies, so `bodyText` and `bodyHtml` can be set on the
+signed message before `send()`. soba-chat's `signedMail()` does this to end every
+mail with a link that names its Message-ID.
+
 There is no `addAttachment`: assign the array. Keep blobs raw ArrayBuffers: a string
 blob becomes an invalid `Blob`, and `Blob.toMsgpack`'s inline branch calls
 `new Uint8Array.from(...)`, which throws. A module that the UI bundles too can't
@@ -187,3 +196,7 @@ blob back by id yet.
 - `soba.type.{blobId,userName,domainName,folderName}.isValid(s)`: pure validators.
   `isValid` is not implemented for uuid, address and namespace; use `.pattern`.
 - `soba.type.uuid.v4()` [NR]: braced uuid string.
+- `soba.type.messageId.gen(fromDomain)` [NR]: a fresh Message-ID, bracket free: a
+  lowercase uuid v4 without braces, `@`, `fromDomain`. An empty domain gives
+  `missing-sender.error.sobamail.com`, one with an `@` `invalid-sender.error.sobamail.com`.
+  Signing replaces it (see soba.mail).
